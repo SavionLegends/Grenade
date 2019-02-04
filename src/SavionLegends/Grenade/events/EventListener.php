@@ -4,6 +4,7 @@
 namespace SavionLegends\Grenade\events;
 
 
+use pocketmine\entity\Entity;
 use pocketmine\entity\projectile\Egg;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
@@ -47,8 +48,15 @@ class EventListener implements Listener {
      */
     public function onExplode(ExplosionPrimeEvent $event){
         $player = $event->getEntity()->getOwningEntity();
+        $entity = $event->getEntity();
         if($player instanceof Player && isset(Main::$usingGrenade[$player->getName()])){
             $this->getPlugin()->explode($event->getEntity()->getPosition(), $player);
+            if(isset(Main::$dropItems[$entity->getId()])){
+                if($entity instanceof Entity){
+                    unset(Main::$dropItems[$entity->getId()]);
+                    if($entity->isAlive() && !$entity->isClosed()) $entity->close();
+                }
+            }
             $event->setCancelled(true);
         }
     }
@@ -64,7 +72,7 @@ class EventListener implements Listener {
             $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
             Main::$dropItems[$dropItem->getId()] = $dropItem;
             if($shooter instanceof Player){
-                $this->getPlugin()->spawnTNT($shooter, $dropItem->getPosition());
+                $this->getPlugin()->spawnTNT($shooter, $dropItem);
             }
         }
     }
@@ -80,7 +88,7 @@ class EventListener implements Listener {
             $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
             Main::$dropItems[$dropItem->getId()] = $dropItem;
             if($shooter instanceof Player){
-                $this->getPlugin()->spawnTNT($shooter, $dropItem->getPosition());
+                $this->getPlugin()->spawnTNT($shooter, $dropItem);
             }
         }
     }
@@ -90,11 +98,9 @@ class EventListener implements Listener {
      */
     public function onPickup(InventoryPickupItemEvent $event){
         $item = $event->getItem();
-        if(isset(Main::$dropItems[$item->getId()])){
+        if($item instanceof Entity && isset(Main::$dropItems[$item->getId()])){
             $event->setCancelled(true);
         }
 
     }
-
-
 }
