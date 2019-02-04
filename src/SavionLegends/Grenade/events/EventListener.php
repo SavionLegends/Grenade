@@ -51,7 +51,6 @@ class EventListener implements Listener {
         $entity = $event->getEntity();
         if($player instanceof Player && isset(Main::$usingGrenade[$player->getName()])){
             $this->getPlugin()->explode($entity->getPosition(), $player);
-            $event->setCancelled(true);
         }
     }
 
