@@ -69,10 +69,10 @@ class Main extends PluginBase{
         }
 
         foreach($nearbyEntities as $entity){
-            if(!$entity instanceof Player){
-                break;
+            if(!($entity instanceof Player)){
+                continue;
             }
-            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_CUSTOM, 15);
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, 15);
             $entity->attack($event);
         }
         if(isset(self::$usingGrenade[$player->getName()])){
