@@ -15,6 +15,7 @@ use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use SavionLegends\Grenade\commands\CommandClass;
 use SavionLegends\Grenade\events\EventListener;
+use SavionLegends\Grenade\tasks\DropItemTask;
 use SavionLegends\Grenade\tasks\InventoryCheckTask;
 
 class Main extends PluginBase{
@@ -49,7 +50,10 @@ class Main extends PluginBase{
         }
 
         CommandClass::registerAll($this, $this->getServer()->getCommandMap());
+
         $this->getScheduler()->scheduleRepeatingTask(new InventoryCheckTask($this), 20);
+        $this->getScheduler()->scheduleRepeatingTask(new DropItemTask($this), 20*10);
+
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->getLogger()->info("Enabled!");
