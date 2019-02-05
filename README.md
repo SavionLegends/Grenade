@@ -1,4 +1,4 @@
-dd grenades to your MC:PE/MC:BE server! 
+Add grenades to your MC:PE/MC:BE server! 
 
 * Choose to break blocks or not when grenade blows up in config
     * `Block-break: false`
