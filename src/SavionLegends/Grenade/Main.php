@@ -87,8 +87,8 @@ class Main extends PluginBase{
         }
 
         foreach($nearbyEntities as $entity){
-            if(!$entity instanceof Player){
-                break;
+            if(!($entity instanceof Player)){
+                continue;
             }
             $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_CUSTOM, $this->damage);
             $entity->attack($event);

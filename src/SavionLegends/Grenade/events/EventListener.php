@@ -5,6 +5,7 @@ namespace SavionLegends\Grenade\events;
 
 
 use pocketmine\entity\Entity;
+use pocketmine\entity\object\PrimedTNT;
 use pocketmine\entity\projectile\Egg;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
@@ -54,13 +55,7 @@ class EventListener implements Listener {
         $player = $event->getEntity()->getOwningEntity();
         $entity = $event->getEntity();
         if($player instanceof Player && isset(Main::$usingGrenade[$player->getName()])){
-            $this->getPlugin()->explode($event->getEntity()->getPosition(), $player);
-            if(isset(Main::$dropItems[$entity->getId()])){
-                if($entity instanceof Entity){
-                    unset(Main::$dropItems[$entity->getId()]);
-                    if($entity->isAlive() && !$entity->isClosed()) $entity->close();
-                }
-            }
+            $this->getPlugin()->explode($entity->getPosition(), $player);
             $event->setCancelled(true);
         }
     }
@@ -70,12 +65,12 @@ class EventListener implements Listener {
      */
     public function onProjectileHit(ProjectileHitEntityEvent $event){
         $projectile = $event->getEntity();
-        if($projectile instanceof Egg){
+        if($projectile instanceof Egg && $event->getEntityHit() instanceof Player or $event->getEntityHit() instanceof Entity && !$event->getEntityHit() instanceof PrimedTNT){
             $shooter = $projectile->getOwningEntity();
             $pos = $event->getEntityHit()->getPosition();
             $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
             Main::$dropItems[$dropItem->getId()] = $dropItem;
-            if($shooter instanceof Player){
+            if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
                 $this->getPlugin()->spawnTNT($shooter, $dropItem);
             }
         }
@@ -91,7 +86,7 @@ class EventListener implements Listener {
             $pos = $event->getBlockHit();
             $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
             Main::$dropItems[$dropItem->getId()] = $dropItem;
-            if($shooter instanceof Player){
+            if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
                 $this->getPlugin()->spawnTNT($shooter, $dropItem);
             }
         }
