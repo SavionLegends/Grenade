@@ -15,11 +15,14 @@ use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use SavionLegends\Grenade\commands\CommandClass;
 use SavionLegends\Grenade\events\EventListener;
+use SavionLegends\Grenade\tasks\InventoryCheckTask;
 
 class Main extends PluginBase{
 
     /* @var \pocketmine\utils\Config*/
     private $config;
+
+    private $blockBreak, $damage, $range;
 
     public static $dropItems = [];
     public static $usingGrenade = [];
@@ -29,9 +32,24 @@ class Main extends PluginBase{
     }
 
     public function onEnable(){
-        $this->config = new Config($this->getDataFolder()."config.yml", Config::YAML, ["Block-break" => false]);
+        $this->config = new Config($this->getDataFolder()."config.yml", Config::YAML, ["Block-break" => false, "Damage" => 10, "Range" => 5]);
+
+        $this->blockBreak = $this->config->get("Block-break");
+        $this->damage = $this->config->get("Damage");
+        $this->range = $this->config->get("Range");
+
+        if($this->damage < 0){
+            $this->damage = 10;
+            $this->getLogger()->error(TextFormat::RED."Grenade damage cannot be less than 0!");
+        }
+
+        if($this->range < 0){
+            $this->damage = 10;
+            $this->getLogger()->error(TextFormat::RED."Grenade range cannot be less than 0!");
+        }
 
         CommandClass::registerAll($this, $this->getServer()->getCommandMap());
+        $this->getScheduler()->scheduleRepeatingTask(new InventoryCheckTask($this), 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->getLogger()->info("Enabled!");
@@ -56,13 +74,13 @@ class Main extends PluginBase{
      * @param Player $player
      */
     public function explode(Position $position, Player $player){
-        $boundingBox = new AxisAlignedBB($position->getX() - 5, $position->getY() - 5, $position->getZ() - 5, $position->getX() + 5, $position->getY() + 5, $position->getZ() + 5);
+        $boundingBox = new AxisAlignedBB($position->getX() - $this->range, $position->getY() - $this->range, $position->getZ() - $this->range, $position->getX() + $this->range, $position->getY() + $this->range, $position->getZ() + $this->range);
 
         $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
 
 
         $explosion = new Explosion($position, 4, null);
-        if($this->config->get("Block-break") === true){
+        if($this->blockBreak){
             $explosion->explodeB();
         }else{
             $explosion->explodeA();
@@ -72,15 +90,8 @@ class Main extends PluginBase{
             if(!$entity instanceof Player){
                 break;
             }
-            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_CUSTOM, 15);
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_CUSTOM, $this->damage);
             $entity->attack($event);
-        }
-        if(isset(self::$usingGrenade[$player->getName()])){
-            $beforeCount = self::$usingGrenade[$player->getName()];
-            self::$usingGrenade[$player->getName()] = ($beforeCount - 1);
-            if(self::$usingGrenade[$player->getName()] === 0){
-                unset(self::$usingGrenade[$player->getName()]);
-            }
         }
     }
 

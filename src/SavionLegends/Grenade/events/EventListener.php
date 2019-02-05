@@ -10,7 +10,11 @@ use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\inventory\InventoryPickupItemEvent;
+use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerItemHeldEvent;
+use pocketmine\inventory\ChestInventory;
+use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -91,16 +95,5 @@ class EventListener implements Listener {
                 $this->getPlugin()->spawnTNT($shooter, $dropItem);
             }
         }
-    }
-
-    /**
-     * @param InventoryPickupItemEvent $event
-     */
-    public function onPickup(InventoryPickupItemEvent $event){
-        $item = $event->getItem();
-        if($item instanceof Entity && isset(Main::$dropItems[$item->getId()])){
-            $event->setCancelled(true);
-        }
-
     }
 }
