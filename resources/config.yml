@@ -1,0 +1,8 @@
+---
+### Chose if grenade explosion breaks blocks
+Block-break: false
+### How much damage the grenade does
+Damage: 10
+### Range of the grenade explosion
+Range: 5
+...

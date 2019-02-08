@@ -30,6 +30,7 @@ class Main extends PluginBase{
 
     public function onLoad(){
         @mkdir($this->getDataFolder());
+        $this->saveResource("config.yml");
     }
 
     public function onEnable(){
