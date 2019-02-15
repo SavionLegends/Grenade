@@ -6,5 +6,7 @@ Add grenades to your MC:PE/MC:BE server!
     * `Damage: 10`
 * Choose grenade range in config
     * `Range: 5`
+* Commands
+   * /grenade give (count) (player)
 
 [![](https://poggit.pmmp.io/shield.state/Grenade)](https://poggit.pmmp.io/p/Grenade)
