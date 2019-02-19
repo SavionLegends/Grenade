@@ -43,9 +43,9 @@ class InventoryCheckTask extends Task{
             $inventory = $player->getInventory();
             if($inventory->contains(Item::get(Item::EGG, -1)) or $inventory->contains(Item::get(Item::EGG, -2))){
                 if(isset(Main::$usingGrenade[$player->getName()])){
-                    Main::$usingGrenade[$player->getName()]["Type"]["Count"] = 1;
+                    Main::$usingGrenade[$player->getName()]["Count"] = 1;
                 }else{
-                    Main::$usingGrenade[$player->getName()]["Type"]["Count"] = 1;
+                    Main::$usingGrenade[$player->getName()]["Count"] = 1;
                 }
             }else{
                 if(isset(Main::$usingGrenade[$player->getName()])){
