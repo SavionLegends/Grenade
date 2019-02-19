@@ -53,7 +53,7 @@ class GrenadeCommand extends CommandClass{
             if(isset($args[1])){
                $count = $args[1];
                if($count <= 0){
-                   $sender->sendMessage("Count must be greater than 0");
+                   $sender->sendMessage(TextFormat::RED."Count must be greater than 0!");
                }
                if(isset($args[2])){
                    $player = $this->getServer()->getPlayer($args[2]);

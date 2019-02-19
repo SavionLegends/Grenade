@@ -11,8 +11,6 @@ use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\Listener;
-use pocketmine\item\Item;
-use pocketmine\math\Vector3;
 use pocketmine\Player;
 use SavionLegends\Grenade\Main;
 
@@ -63,10 +61,8 @@ class EventListener implements Listener {
         if($projectile instanceof Egg && $event->getEntityHit() instanceof Player or $event->getEntityHit() instanceof Entity && !$event->getEntityHit() instanceof PrimedTNT){
             $shooter = $projectile->getOwningEntity();
             $pos = $event->getEntityHit()->getPosition();
-            $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
-            Main::$dropItems[$dropItem->getId()] = $dropItem;
             if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
-                $this->getPlugin()->spawnTNT($shooter, $dropItem);
+                $this->getPlugin()->spawnTNT($shooter, $pos);
             }
         }
     }
@@ -79,10 +75,8 @@ class EventListener implements Listener {
         if($projectile instanceof Egg){
             $shooter = $projectile->getOwningEntity();
             $pos = $event->getBlockHit();
-            $dropItem = $projectile->getLevel()->dropItem(new Vector3($pos->x, $pos->y + 1.5, $pos->z), Item::get(Item::EGG));
-            Main::$dropItems[$dropItem->getId()] = $dropItem;
             if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
-                $this->getPlugin()->spawnTNT($shooter, $dropItem);
+                $this->getPlugin()->spawnTNT($shooter, $pos);
             }
         }
     }

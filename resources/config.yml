@@ -5,4 +5,6 @@ Block-break: false
 Damage: 10
 ### Range of the grenade explosion
 Range: 5
+### How big the explosion size of the grenade
+Explosion-size: 4
 ...

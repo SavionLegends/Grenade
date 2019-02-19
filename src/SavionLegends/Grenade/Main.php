@@ -15,7 +15,6 @@ use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use SavionLegends\Grenade\commands\CommandClass;
 use SavionLegends\Grenade\events\EventListener;
-use SavionLegends\Grenade\tasks\DropItemTask;
 use SavionLegends\Grenade\tasks\InventoryCheckTask;
 
 class Main extends PluginBase{
@@ -23,9 +22,8 @@ class Main extends PluginBase{
     /* @var \pocketmine\utils\Config*/
     private $config;
 
-    private $blockBreak, $damage, $range;
+    private $blockBreak, $damage, $range, $explosionSize;
 
-    public static $dropItems = [];
     public static $usingGrenade = [];
 
     public function onLoad(){
@@ -39,37 +37,38 @@ class Main extends PluginBase{
         $this->blockBreak = $this->config->get("Block-break");
         $this->damage = $this->config->get("Damage");
         $this->range = $this->config->get("Range");
+        $this->explosionSize = $this->config->get("Explosion-size");
 
-        if($this->damage < 0){
+        if($this->damage <= 0){
             $this->damage = 10;
             $this->getLogger()->error(TextFormat::RED."Grenade damage cannot be less than 0!");
         }
 
-        if($this->range < 0){
+        if($this->range <= 0){
             $this->damage = 10;
             $this->getLogger()->error(TextFormat::RED."Grenade range cannot be less than 0!");
+        }
+
+        if($this->explosionSize <= 0){
+            $this->explosionSize = 4;
+            $this->getLogger()->error(TextFormat::RED."Grenade explosion size cannot be less than 0!");
         }
 
         CommandClass::registerAll($this, $this->getServer()->getCommandMap());
 
         $this->getScheduler()->scheduleRepeatingTask(new InventoryCheckTask($this), 20);
-        $this->getScheduler()->scheduleRepeatingTask(new DropItemTask($this), 20*10);
 
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->getLogger()->info("Enabled!");
     }
 
-    public function onDisable(){
-
-    }
-
     /**
      * @param Player $player
-     * @param Entity $entity
+     * @param Position $position
      */
-    public function spawnTNT(Player $player, Entity $entity){
-        $tnt = Entity::createEntity("PrimedTNT", $player->getLevel(), Entity::createBaseNBT($entity->getPosition()), $player);
+    public function spawnTNT(Player $player, Position $position){
+        $tnt = Entity::createEntity("PrimedTNT", $player->getLevel(), Entity::createBaseNBT($position), $player);
         $tnt->setOwningEntity($player);
         $tnt->spawnToAll();
     }
@@ -84,7 +83,7 @@ class Main extends PluginBase{
         $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
 
 
-        $explosion = new Explosion($position, 4, null);
+        $explosion = new Explosion($position, $this->explosionSize, null);
         if($this->blockBreak){
             $explosion->explodeB();
         }else{
@@ -95,7 +94,7 @@ class Main extends PluginBase{
             if(!($entity instanceof Player)){
                 continue;
             }
-            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_CUSTOM, $this->damage);
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, $this->damage);
             $entity->attack($event);
         }
     }

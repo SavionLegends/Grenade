@@ -6,6 +6,8 @@ Add grenades to your MC:PE/MC:BE server!
     * `Damage: 10`
 * Choose grenade range in config
     * `Range: 5`
+* Choose grenade explosion size in config
+    * `Explosion-size: 4`
 * Commands
    * /grenade give (count) (player)
 
