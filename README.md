@@ -12,3 +12,4 @@ Add grenades to your MC:PE/MC:BE server!
    * /grenade give (count) (player)
 
 [![](https://poggit.pmmp.io/shield.state/Grenade)](https://poggit.pmmp.io/p/Grenade)
+[![](https://poggit.pmmp.io/shield.dl.total/Grenade)](https://poggit.pmmp.io/p/Grenade)

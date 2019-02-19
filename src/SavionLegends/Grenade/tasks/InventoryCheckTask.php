@@ -41,11 +41,11 @@ class InventoryCheckTask extends Task{
     public function onRun(int $currentTick){
         foreach($this->getServer()->getOnlinePlayers() as $player){
             $inventory = $player->getInventory();
-            if($inventory->contains(Item::get(Item::EGG, -1))){
+            if($inventory->contains(Item::get(Item::EGG, -1)) or $inventory->contains(Item::get(Item::EGG, -2))){
                 if(isset(Main::$usingGrenade[$player->getName()])){
-                    Main::$usingGrenade[$player->getName()] = 1;
+                    Main::$usingGrenade[$player->getName()]["Type"]["Count"] = 1;
                 }else{
-                    Main::$usingGrenade[$player->getName()] = 1;
+                    Main::$usingGrenade[$player->getName()]["Type"]["Count"] = 1;
                 }
             }else{
                 if(isset(Main::$usingGrenade[$player->getName()])){

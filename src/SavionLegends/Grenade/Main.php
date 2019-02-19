@@ -2,6 +2,8 @@
 
 namespace SavionLegends\Grenade;
 
+use pocketmine\entity\Effect;
+use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -19,12 +21,17 @@ use SavionLegends\Grenade\tasks\InventoryCheckTask;
 
 class Main extends PluginBase{
 
+    public const FRAG = "FRAG";
+    public const STUN = "STUN";
+
+    public static $types = [self::FRAG => self::FRAG, self::STUN => self::STUN];
+    public static $usingGrenade = [];
+
     /* @var \pocketmine\utils\Config*/
     private $config;
 
     private $blockBreak, $damage, $range, $explosionSize;
 
-    public static $usingGrenade = [];
 
     public function onLoad(){
         @mkdir($this->getDataFolder());
@@ -60,7 +67,7 @@ class Main extends PluginBase{
 
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
-        $this->getLogger()->info("Enabled!");
+        $this->getLogger()->info(TextFormat::GREEN."Enabled!");
     }
 
     /**
@@ -73,11 +80,37 @@ class Main extends PluginBase{
         $tnt->spawnToAll();
     }
 
+
     /**
      * @param Position $position
      * @param Player $player
      */
-    public function explode(Position $position, Player $player){
+    public function explodeStun(Position $position, Player $player){
+        $boundingBox = new AxisAlignedBB($position->getX() - $this->range, $position->getY() - $this->range, $position->getZ() - $this->range, $position->getX() + $this->range, $position->getY() + $this->range, $position->getZ() + $this->range);
+
+        $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
+
+
+        $explosion = new Explosion($position, $this->explosionSize, null);
+        $explosion->explodeA();
+
+        foreach($nearbyEntities as $entity){
+            if(!($entity instanceof Player)){
+                continue;
+            }
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, 0);
+            $entity->attack($event);
+
+            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::BLINDNESS), 20*5, 2));
+            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::SLOWNESS), 20*5, 3));
+        }
+    }
+
+    /**
+     * @param Position $position
+     * @param Player $player
+     */
+    public function explodeFrag(Position $position, Player $player){
         $boundingBox = new AxisAlignedBB($position->getX() - $this->range, $position->getY() - $this->range, $position->getZ() - $this->range, $position->getX() + $this->range, $position->getY() + $this->range, $position->getZ() + $this->range);
 
         $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
@@ -102,18 +135,29 @@ class Main extends PluginBase{
     /**
      * @param Player $player
      * @param $count
+     * @param $type
      */
-    public function giveGrenade(Player $player, $count){
-        $item = Item::get(Item::EGG, -1, $count);
-        $item->setCustomName("Grenade");
-        $player->getInventory()->addItem($item);
-
-        $player->sendMessage(TextFormat::YELLOW."You received ".$count." grenade(s)!");
+    public function giveGrenade(Player $player, $count, $type){
+       if($type === self::FRAG){
+           $item = Item::get(Item::EGG, -1, $count);
+           $item->setCustomName("Frag Grenade");
+           $player->getInventory()->addItem($item);
+       }elseif($type === self::STUN){
+           $item = Item::get(Item::EGG, -2, $count);
+           $item->setCustomName("Stun Grenade");
+           $player->getInventory()->addItem($item);
+       }
+        $player->sendMessage(TextFormat::YELLOW."You received ".$count." ".$type." grenade(s)!");
         if(!isset(self::$usingGrenade[$player->getName()])){
-            self::$usingGrenade[$player->getName()] = $count;
+            self::$usingGrenade[$player->getName()]["Type"] = $type;
+            self::$usingGrenade[$player->getName()]["Count"] = $count;
         }else{
-            $beforeCount = self::$usingGrenade[$player->getName()];
-            self::$usingGrenade[$player->getName()] = ($beforeCount + $count);
+            /* TODO: fix
+            $beforeCount = self::$usingGrenade[$player->getName()]["Type"]["Count"];
+            $beforeType = self::$usingGrenade[$player->getName()]["Type"];
+            self::$usingGrenade[$player->getName()][$beforeType]["Count"] = ($beforeCount + $count);*/
+            self::$usingGrenade[$player->getName()]["Type"] = $type;
+            self::$usingGrenade[$player->getName()]["Count"] = $count;
         }
     }
 }

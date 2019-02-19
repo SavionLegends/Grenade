@@ -51,31 +51,41 @@ class GrenadeCommand extends CommandClass{
 
         if(isset($args[0]) && $args[0] === strtolower("give")){
             if(isset($args[1])){
-               $count = $args[1];
-               if($count <= 0){
-                   $sender->sendMessage(TextFormat::RED."Count must be greater than 0!");
-               }
-               if(isset($args[2])){
-                   $player = $this->getServer()->getPlayer($args[2]);
-                   if($player !== null && $player->isOnline()){
-                       $this->getPlugin()->giveGrenade($player, $count);
-                       $sender->sendMessage(TextFormat::YELLOW."Gave ".$player->getName()." ".$count." grenade(s)!");
-                   }else{
-                       $sender->sendMessage(TextFormat::RED."That player isn't online!");
-                   }
-               }else{
-                   if(!$sender instanceof Player){
-                       $sender->sendMessage(TextFormat::RED."Please join the server to run commands!");
-                       return false;
-                   }
-                   $this->getPlugin()->giveGrenade($sender, $count);
-               }
-            }else{
-                if(!$sender instanceof Player){
-                    $sender->sendMessage(TextFormat::RED."Please join the server to run commands!");
+                if(!isset(Main::$types[strtoupper($args[1])])){
+                    $sender->sendMessage(TextFormat::RED."That isn't a grenade type!");
                     return false;
                 }
-                $this->getPlugin()->giveGrenade($sender, 1);
+                $type = Main::$types[strtoupper($args[1])];
+                if(isset($args[2])){
+                    $count = $args[2];
+                    if($count <= 0){
+                        $sender->sendMessage(TextFormat::RED."Count must be greater than 0!");
+                        return false;
+                    }
+                    if(isset($args[3])){
+                        $player = $this->getServer()->getPlayer($args[2]);
+                        if($player !== null && $player->isOnline()){
+                          $this->getPlugin()->giveGrenade($player, $count, $type);
+                            $sender->sendMessage(TextFormat::YELLOW."Gave ".$player->getName()." ".$count." grenade(s)!");
+                        }else{
+                            $sender->sendMessage(TextFormat::RED."That player isn't online!");
+                        }
+                    }else{
+                        if(!$sender instanceof Player){
+                            $sender->sendMessage(TextFormat::RED."Please join the server to run commands!");
+                            return false;
+                        }
+                       $this->getPlugin()->giveGrenade($sender, $count, $type);
+                    }
+                }else{
+                    if(!$sender instanceof Player){
+                        $sender->sendMessage(TextFormat::RED."Please join the server to run commands!");
+                        return false;
+                    }
+                    $this->getPlugin()->giveGrenade($sender, 1, $type);
+                }
+            }else{
+                $sender->sendMessage(TextFormat::RED."Usage: ".$this->getUsage());
             }
         }else{
             $sender->sendMessage(TextFormat::RED."Usage: ".$this->getUsage());

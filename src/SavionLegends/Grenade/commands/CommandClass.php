@@ -47,7 +47,7 @@ class CommandClass extends Command{
      */
     public static function registerAll(Main $main, CommandMap $map){
         $map->registerAll("grenade",
-            [new GrenadeCommand($main, "grenade", "Grenade command!", "/grenade give (count) (player)")]);
+            [new GrenadeCommand($main, "grenade", "Grenade command!", "/grenade give (type) (count) (player)")]);
     }
 
     /**
