@@ -1,4 +1,4 @@
-##Add grenades to your MC:PE/MC:BE server! ##
+# Add grenades to your MC:PE/MC:BE server!
 
 #
 ### Config settings for Frag grenade
