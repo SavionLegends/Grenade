@@ -3,5 +3,6 @@ branches:
 - master
 projects:
   Grenade:
+    icon: "icon.png"
     path: ""
 ...
