@@ -3,7 +3,6 @@
 
 namespace SavionLegends\Grenade\commands;
 
-
 use pocketmine\command\Command;
 use pocketmine\command\CommandMap;
 use pocketmine\command\CommandSender;

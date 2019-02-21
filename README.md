@@ -1,15 +1,34 @@
-Add grenades to your MC:PE/MC:BE server! 
+##Add grenades to your MC:PE/MC:BE server! ##
 
-* Choose to break blocks or not when grenade blows up in config
+#
+### Config settings for Frag grenade
+`Frag:`
+ * Choose whether blocks break on explosion
     * `Block-break: false`
-* Choose grenade damage in config
+ * Choose grenade damage
     * `Damage: 10`
-* Choose grenade range in config
+ * Choose grenade range
     * `Range: 5`
-* Choose grenade explosion size in config
+ * Choose grenade explosion size
     * `Explosion-size: 4`
-* Commands
-   * /grenade give (count) (player)
+#
+### Config settings for Stun grenade
+`Stun:`
+ * Choose whether blocks break on explosion
+    * `Block-break: false`
+ * Choose grenade damage
+    * `Damage: 0`
+ * Choose grenade range
+    * `Range: 6`
+ * Choose grenade explosion size
+    * `Explosion-size: 2`
+#
+## Commands
+* /grenade give (type) (count) (player)
+#
+## Grenade types
+* Stun
+* Frag
 
 [![](https://poggit.pmmp.io/shield.state/Grenade)](https://poggit.pmmp.io/p/Grenade)
 [![](https://poggit.pmmp.io/shield.dl.total/Grenade)](https://poggit.pmmp.io/p/Grenade)

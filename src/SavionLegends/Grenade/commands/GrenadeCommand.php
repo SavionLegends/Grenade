@@ -3,7 +3,6 @@
 
 namespace SavionLegends\Grenade\commands;
 
-
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -63,7 +62,7 @@ class GrenadeCommand extends CommandClass{
                         return false;
                     }
                     if(isset($args[3])){
-                        $player = $this->getServer()->getPlayer($args[2]);
+                        $player = $this->getServer()->getPlayer($args[3]);
                         if($player !== null && $player->isOnline()){
                           $this->getPlugin()->giveGrenade($player, $count, $type);
                             $sender->sendMessage(TextFormat::YELLOW."Gave ".$player->getName()." ".$count." grenade(s)!");

@@ -11,13 +11,15 @@ use pocketmine\item\Item;
 use pocketmine\level\Explosion;
 use pocketmine\level\Position;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use SavionLegends\Grenade\commands\CommandClass;
 use SavionLegends\Grenade\events\EventListener;
-use SavionLegends\Grenade\tasks\InventoryCheckTask;
 
 class Main extends PluginBase{
 
@@ -25,7 +27,6 @@ class Main extends PluginBase{
     public const STUN = "STUN";
 
     public static $types = [self::FRAG => self::FRAG, self::STUN => self::STUN];
-    public static $usingGrenade = [];
 
     /* @var \pocketmine\utils\Config*/
     private $config;
@@ -39,44 +40,40 @@ class Main extends PluginBase{
     }
 
     public function onEnable(){
-        $this->config = new Config($this->getDataFolder()."config.yml", Config::YAML, ["Block-break" => false, "Damage" => 10, "Range" => 5]);
+        $this->config = new Config($this->getDataFolder()."config.yml", Config::YAML, []);
 
-        $this->blockBreak = $this->config->get("Block-break");
-        $this->damage = $this->config->get("Damage");
-        $this->range = $this->config->get("Range");
-        $this->explosionSize = $this->config->get("Explosion-size");
+        $this->blockBreak["Frag"] = $this->config->get("Frag")["Block-break"];
+        $this->damage["Frag"] = $this->config->get("Frag")["Damage"];
+        $this->range["Frag"] = $this->config->get("Frag")["Range"];
+        $this->explosionSize["Frag"] = $this->config->get("Frag")["Explosion-size"];
 
-        if($this->damage <= 0){
-            $this->damage = 10;
-            $this->getLogger()->error(TextFormat::RED."Grenade damage cannot be less than 0!");
-        }
+        $this->blockBreak["Stun"] = $this->config->get("Stun")["Block-break"];
+        $this->damage["Stun"] = $this->config->get("Stun")["Damage"];
+        $this->range["Stun"] = $this->config->get("Stun")["Range"];
+        $this->explosionSize["Stun"] = $this->config->get("Stun")["Explosion-size"];
 
-        if($this->range <= 0){
-            $this->damage = 10;
-            $this->getLogger()->error(TextFormat::RED."Grenade range cannot be less than 0!");
-        }
-
-        if($this->explosionSize <= 0){
-            $this->explosionSize = 4;
-            $this->getLogger()->error(TextFormat::RED."Grenade explosion size cannot be less than 0!");
-        }
 
         CommandClass::registerAll($this, $this->getServer()->getCommandMap());
 
-        $this->getScheduler()->scheduleRepeatingTask(new InventoryCheckTask($this), 20);
-
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
-        $this->getLogger()->info(TextFormat::GREEN."Enabled!");
+        $this->getLogger()->info("Enabled!");
     }
 
     /**
      * @param Player $player
      * @param Position $position
+     * @param $type
      */
-    public function spawnTNT(Player $player, Position $position){
+    public function spawnTNT(Player $player, Position $position, $type){
         $tnt = Entity::createEntity("PrimedTNT", $player->getLevel(), Entity::createBaseNBT($position), $player);
         $tnt->setOwningEntity($player);
+        if($tnt->namedtag !== null){
+            $tnt->namedtag->setString("Type", $type);
+        }else{
+            $tnt->namedtag = new CompoundTag("", []);
+            $tnt->namedtag->setString("Type", $type);
+        }
         $tnt->spawnToAll();
     }
 
@@ -86,38 +83,14 @@ class Main extends PluginBase{
      * @param Player $player
      */
     public function explodeStun(Position $position, Player $player){
-        $boundingBox = new AxisAlignedBB($position->getX() - $this->range, $position->getY() - $this->range, $position->getZ() - $this->range, $position->getX() + $this->range, $position->getY() + $this->range, $position->getZ() + $this->range);
+        $boundingBox = new AxisAlignedBB($position->getX() - $this->range["Stun"], $position->getY() - $this->range["Stun"], $position->getZ() - $this->range["Stun"], $position->getX() + $this->range["Stun"], $position->getY() + $this->range["Stun"], $position->getZ() + $this->range["Stun"]);
 
         $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
 
 
-        $explosion = new Explosion($position, $this->explosionSize, null);
-        $explosion->explodeA();
+        $explosion = new Explosion($position, $this->explosionSize["Stun"], null);
 
-        foreach($nearbyEntities as $entity){
-            if(!($entity instanceof Player)){
-                continue;
-            }
-            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, 0);
-            $entity->attack($event);
-
-            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::BLINDNESS), 20*5, 2));
-            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::SLOWNESS), 20*5, 3));
-        }
-    }
-
-    /**
-     * @param Position $position
-     * @param Player $player
-     */
-    public function explodeFrag(Position $position, Player $player){
-        $boundingBox = new AxisAlignedBB($position->getX() - $this->range, $position->getY() - $this->range, $position->getZ() - $this->range, $position->getX() + $this->range, $position->getY() + $this->range, $position->getZ() + $this->range);
-
-        $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
-
-
-        $explosion = new Explosion($position, $this->explosionSize, null);
-        if($this->blockBreak){
+        if($this->blockBreak["Stun"]){
             $explosion->explodeB();
         }else{
             $explosion->explodeA();
@@ -127,8 +100,41 @@ class Main extends PluginBase{
             if(!($entity instanceof Player)){
                 continue;
             }
-            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, $this->damage);
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, $this->damage["Stun"]);
             $entity->attack($event);
+
+            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::BLINDNESS), 20*5, 2));
+            $entity->addEffect(new EffectInstance(Effect::getEffect(Effect::SLOWNESS), 20*5, 3));
+
+            $entity->getLevel()->broadcastLevelSoundEvent(new Vector3($position->x, $position->y, $position->z), LevelSoundEventPacket::SOUND_EXPLODE, -1, -1, false, true);
+        }
+    }
+
+    /**
+     * @param Position $position
+     * @param Player $player
+     */
+    public function explodeFrag(Position $position, Player $player){
+        $boundingBox = new AxisAlignedBB($position->getX() - $this->range["Frag"], $position->getY() - $this->range["Frag"], $position->getZ() - $this->range["Frag"], $position->getX() + $this->range["Frag"], $position->getY() + $this->range["Frag"], $position->getZ() + $this->range["Frag"]);
+
+        $nearbyEntities = $player->getLevel()->getNearbyEntities($boundingBox);
+
+
+        $explosion = new Explosion($position, $this->explosionSize["Frag"], null);
+        if($this->blockBreak["Frag"]){
+            $explosion->explodeB();
+        }else{
+            $explosion->explodeA();
+        }
+
+        foreach($nearbyEntities as $entity){
+            if(!($entity instanceof Player)){
+                continue;
+            }
+            $event = new EntityDamageByEntityEvent($player, $entity, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION, $this->damage["Frag"]);
+            $entity->attack($event);
+
+            $entity->getLevel()->broadcastLevelSoundEvent(new Vector3($position->x, $position->y, $position->z), LevelSoundEventPacket::SOUND_EXPLODE, -1, -1, false, true);
         }
     }
 
@@ -138,26 +144,23 @@ class Main extends PluginBase{
      * @param $type
      */
     public function giveGrenade(Player $player, $count, $type){
-       if($type === self::FRAG){
-           $item = Item::get(Item::EGG, -1, $count);
-           $item->setCustomName("Frag Grenade");
-           $player->getInventory()->addItem($item);
-       }elseif($type === self::STUN){
-           $item = Item::get(Item::EGG, -2, $count);
-           $item->setCustomName("Stun Grenade");
-           $player->getInventory()->addItem($item);
-       }
-        $player->sendMessage(TextFormat::YELLOW."You received ".$count." ".$type." grenade(s)!");
-        if(!isset(self::$usingGrenade[$player->getName()])){
-            self::$usingGrenade[$player->getName()]["Type"] = $type;
-            self::$usingGrenade[$player->getName()]["Count"] = $count;
-        }else{
-            /* TODO: fix
-            $beforeCount = self::$usingGrenade[$player->getName()]["Type"]["Count"];
-            $beforeType = self::$usingGrenade[$player->getName()]["Type"];
-            self::$usingGrenade[$player->getName()][$beforeType]["Count"] = ($beforeCount + $count);*/
-            self::$usingGrenade[$player->getName()]["Type"] = $type;
-            self::$usingGrenade[$player->getName()]["Count"] = $count;
+        if($type === Main::FRAG){
+            $item = Item::get(Item::EGG, -1, $count);
+            $item->setCustomName("Frag Grenade");
+            $nbt = $item->getNamedTag() ?? new CompoundTag("", []);
+            $nbt->setString("Type", $type);
+            $item->setNamedTag($nbt);
+            $player->getInventory()->addItem($item);
+            $player->sendMessage(TextFormat::YELLOW."You received ".$type." grenade!");
+        }
+        if($type === Main::STUN){
+            $item = Item::get(Item::EGG, -2, $count);
+            $item->setCustomName("Stun Grenade");
+            $nbt = $item->getNamedTag() ?? new CompoundTag("", []);
+            $nbt->setString("Type", $type);
+            $item->setNamedTag($nbt);
+            $player->getInventory()->addItem($item);
+            $player->sendMessage(TextFormat::YELLOW."You received ".$type." grenade!");
         }
     }
 }

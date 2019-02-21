@@ -1,10 +1,22 @@
 ---
-### Chose if grenade explosion breaks blocks
-Block-break: false
-### How much damage the grenade does
-Damage: 10
-### Range of the grenade explosion
-Range: 5
-### How big the explosion size of the grenade
-Explosion-size: 4
+### Config settings for frag grenade
+Frag:
+  ### Choose whether blocks break on explosion
+  Block-break: false
+  ### Choose grenade damage
+  Damage: 10
+  ### Choose grenade range
+  Range: 5
+  ### Choose grenade explosion size
+  Explosion-size: 4
+### Config settings for stun grenade
+Stun:
+  ### Choose whether blocks break on explosion
+  Block-break: false
+  ### Choose grenade damage
+  Damage: 0
+  ### Choose grenade range
+  Range: 6
+  ### Choose grenade explosion size
+  Explosion-size: 2
 ...

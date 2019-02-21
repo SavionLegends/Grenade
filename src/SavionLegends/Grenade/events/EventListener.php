@@ -3,9 +3,6 @@
 
 namespace SavionLegends\Grenade\events;
 
-
-use pocketmine\entity\Entity;
-use pocketmine\entity\object\PrimedTNT;
 use pocketmine\entity\projectile\Egg;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
@@ -45,16 +42,19 @@ class EventListener implements Listener {
      * @param ExplosionPrimeEvent $event
      */
     public function onExplode(ExplosionPrimeEvent $event){
-        $player = $event->getEntity()->getOwningEntity();
         $entity = $event->getEntity();
-        if($player instanceof Player && isset(Main::$usingGrenade[$player->getName()])){
-            if(Main::$usingGrenade[$player->getName()]["Type"] === Main::FRAG){
-                $this->getPlugin()->explodeFrag($entity->getPosition(), $player);
-                $event->setCancelled(true);
-            }
-            if(Main::$usingGrenade[$player->getName()]["Type"] === Main::STUN){
-                $this->getPlugin()->explodeStun($entity->getPosition(), $player);
-                $event->setCancelled(true);
+        if($entity->namedtag !== null){
+            $type = $entity->namedtag->getString("Type");
+            $owningEntity = $entity->getOwningEntity();
+            if($owningEntity instanceof Player){
+                if($type === Main::FRAG){
+                    $event->setCancelled(true);
+                    $this->getPlugin()->explodeFrag($entity->getPosition(), $owningEntity);
+                }
+                if($type === Main::STUN){
+                    $event->setCancelled(true);
+                    $this->getPlugin()->explodeStun($entity->getPosition(), $owningEntity);
+                }
             }
         }
     }
@@ -64,11 +64,14 @@ class EventListener implements Listener {
      */
     public function onProjectileHit(ProjectileHitEntityEvent $event){
         $projectile = $event->getEntity();
-        if($projectile instanceof Egg && $event->getEntityHit() instanceof Player or $event->getEntityHit() instanceof Entity && !$event->getEntityHit() instanceof PrimedTNT){
+        $entityHit = $event->getEntityHit();
+        if($projectile instanceof Egg){
             $shooter = $projectile->getOwningEntity();
-            $pos = $event->getEntityHit()->getPosition();
-            if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
-                $this->getPlugin()->spawnTNT($shooter, $pos);
+            if($shooter instanceof Player){
+                if($projectile->namedtag !== null){
+                    $type = $projectile->namedtag->getString("Type");
+                    $this->getPlugin()->spawnTNT($shooter, $entityHit->getPosition(), $type);
+                }
             }
         }
     }
@@ -80,9 +83,11 @@ class EventListener implements Listener {
         $projectile = $event->getEntity();
         if($projectile instanceof Egg){
             $shooter = $projectile->getOwningEntity();
-            $pos = $event->getBlockHit();
-            if($shooter instanceof Player && isset(Main::$usingGrenade[$shooter->getName()])){
-                $this->getPlugin()->spawnTNT($shooter, $pos);
+            if($shooter instanceof Player){
+                if($projectile->namedtag !== null){
+                    $type = $projectile->namedtag->getString("Type");
+                    $this->getPlugin()->spawnTNT($shooter, $projectile->getPosition(), $type);
+                }
             }
         }
     }
