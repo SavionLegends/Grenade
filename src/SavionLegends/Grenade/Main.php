@@ -70,9 +70,11 @@ class Main extends PluginBase{
         $tnt->setOwningEntity($player);
         if($tnt->namedtag !== null){
             $tnt->namedtag->setString("Type", $type);
+            $tnt->namedtag->setString("Custom", "true");
         }else{
             $tnt->namedtag = new CompoundTag("", []);
             $tnt->namedtag->setString("Type", $type);
+            $tnt->namedtag->setString("Custom", "true");
         }
         $tnt->spawnToAll();
     }

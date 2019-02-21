@@ -45,6 +45,7 @@ class EventListener implements Listener {
         $entity = $event->getEntity();
         if($entity->namedtag !== null){
             $type = $entity->namedtag->getString("Type");
+            $custom = $entity->namedtag->getString("Custom");
             $owningEntity = $entity->getOwningEntity();
             if($owningEntity instanceof Player){
                 if($type === Main::FRAG){
@@ -55,6 +56,9 @@ class EventListener implements Listener {
                     $event->setCancelled(true);
                     $this->getPlugin()->explodeStun($entity->getPosition(), $owningEntity);
                 }
+            }
+            if($custom === "true" or $custom === true){
+                $event->setCancelled(true);
             }
         }
     }
